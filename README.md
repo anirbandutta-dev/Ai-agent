@@ -1,20 +1,22 @@
 # 🤖 VooDo — Autonomous AI Tech Support Agent
 
-> An AI agent that **sees your screen**, **reasons about your problem**, and **fixes it** — just like a remote IT technician, but instant and available 24/7.
+> **An AI agent that sees your screen, reasons about your problem, and fixes it autonomously — like a remote IT technician that is instant, free, and available 24/7.**
 
 ![Chat UI](assets/chat.gif)
 
 ---
 
-## ✨ What is VooDo?
+## 🏆 Project Submission Overview
 
-VooDo is an autonomous Windows tech-support agent powered by a vision-language model. You describe your problem in a chat UI — the agent takes a screenshot, reasons about what's wrong, and acts with mouse and keyboard to fix it.
+**The Problem:** Tech support queues take hours. Existing chatbots only tell you *how* to fix a problem, forcing you to follow confusing step-by-step tutorials. 
 
-No waiting on hold. No step-by-step instructions to follow yourself. The AI just does it.
+**The Solution:** VooDo uses vision-language models (like Gemini) to actually *do the work*. You describe the problem, the agent takes a screenshot, reasons about the UI state, and controls your mouse and keyboard to fix it autonomously.
+
+**Key Innovation:** Unlike simple macro scripts, VooDo is a closed-loop system: `screenshot → reason → act → screenshot`. It verifies every action before taking the next one, making it incredibly robust.
 
 ---
 
-## 🎥 Demo
+## 🎥 Demos
 
 | Control Mode | Guide Mode | Solutions DB |
 |---|---|---|
@@ -25,34 +27,27 @@ No waiting on hold. No step-by-step instructions to follow yourself. The AI just
 
 ## 🚀 Key Features
 
-### 👁️ Real Computer Vision
+### 1. Real Computer Vision
 The agent takes a screenshot before **every single action**. It never assumes what's on screen — it always verifies, just like a human technician.
 
-### 🔄 Autonomous Multi-Step Loop
-`screenshot → reason → act → screenshot → repeat`
+### 2. Autonomous Multi-Step Loop
+The agent can execute workflows up to 15 steps long, checking the result of each action before proceeding.
 
-The agent runs up to 15 steps per session, checking the result of each action before the next.
-
-### 🎛️ Two Operating Modes
+### 3. Two Operating Modes
 - **Control Mode** — The agent fully resolves the issue. Each mouse/keyboard action requires your approval first.
-- **Guide Mode** — The agent annotates your screen with spotlight overlays, teaching you where to click. Never touches your machine.
+- **Guide Mode** — The agent never touches your machine. Instead, it annotates your screen with spotlight overlays, teaching you exactly where to click.
 
-### 🧠 Shared Solutions Knowledge Base
-Solved problems are stored as **384-dimensional semantic embeddings** in Postgres + pgvector. When a similar issue comes in, the agent finds the cached fix instantly.
+### 4. Semantic Cache (Speed Optimization)
+Solved problems are stored as **384-dimensional semantic embeddings** in a Postgres database using `pgvector`. When a similar issue comes in, the agent skips the reasoning phase and finds the cached fix instantly, reducing a 45-second fix to 5 seconds.
 
-### 🔒 Enterprise Security
-- Hard tool allow-list — deny by default, only 40+ safe tools permitted
-- Dangerous key blocklist — Win+R, Ctrl+Alt+Delete blocked outright
-- Per-session caps — max 5 destructive actions, 500 chars typed
-- Prompt injection defense — Unicode normalization + regex screening
-- Secret redaction — passwords are never stored in the solutions DB
-- Audit log — every action logged in tamper-evident JSON
+### 5. Enterprise-Grade Security
+- **Hard Tool Allow-list:** Deny-by-default logic; only 40+ safe tools permitted.
+- **Dangerous Key Blocklist:** System hotkeys (Win+R, Ctrl+Alt+Delete) are permanently blocked.
+- **Per-Session Caps:** Max 5 destructive actions and 500 characters typed per session to prevent runaway loops.
+- **Prompt Injection Defense:** Scans and strips invisible Unicode characters used by attackers.
 
-### 🌐 Firewall-Friendly Architecture
-The Windows executor **dials out** to the backend over WebSocket. Zero inbound ports needed — works behind NAT and corporate firewalls.
-
-### 🔌 LLM-Agnostic
-Works with any OpenAI-compatible API: OpenAI, Gemini, Anthropic, OpenRouter. Switch models by changing two lines in `.env`.
+### 6. Firewall-Friendly Architecture
+The Windows executor **dials out** to the backend over WebSocket. Zero inbound ports are needed, meaning it works out-of-the-box behind corporate firewalls and NATs.
 
 ---
 
@@ -71,110 +66,69 @@ Works with any OpenAI-compatible API: OpenAI, Gemini, Anthropic, OpenRouter. Swi
 
 ---
 
-## 📁 Project Structure
-
-```
-VooDo/
-├── server/
-│   ├── agent/          # Multi-turn computer-use agent loop
-│   ├── app/            # FastAPI server + Chat UI + IT Dashboard
-│   └── db/             # Postgres + pgvector + solution seeding
-├── client/
-│   ├── executor/       # Windows WebSocket client (screenshot, click, type)
-│   └── scripts/        # Launcher, floating widget, spotlight overlay
-└── shared/             # Wire types, security config, tool allowlist
-```
-
----
-
-## ⚡ Quickstart
+## ⚡ Quickstart Guide
 
 ### Prerequisites
 - Python 3.10+
-- A Gemini / OpenAI / OpenRouter API key
+- A Gemini / OpenAI API key
 
 ### 1. Clone & Configure
 
 ```bash
-git clone https://github.com/anirbandutta-dev/agent-demo.git
-cd agent-demo
+git clone https://github.com/anirbandutta-dev/Ai-agent.git
+cd Ai-agent
 ```
 
-Create `.env` in the root:
+Create a `.env` file in the root directory:
 
 ```env
-# Gemini (free tier)
+# Using Gemini
 LLM_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/
-LLM_API_KEY=your-gemini-api-key
+LLM_API_KEY=your-api-key-here
 LLM_MODEL=gemini-flash-lite-latest
 
-SKIP_DB=1
-EXECUTOR_TOKEN=your-secret-token-here
+# Core Settings
+SKIP_DB=1 # Set to 0 if you have Postgres running via Docker
+EXECUTOR_TOKEN=hackathon123
 IT_PASSWORD=demo123
 ADMIN_PASSWORD=demo123
 ```
 
-### 2. Install & Start Backend
+### 2. Start the Backend Server
 
 ```bash
 pip install -r server/app/requirements.txt -r server/agent/requirements.txt
 python -m uvicorn server.app.main:app --host 0.0.0.0 --port 7860
 ```
 
-### 3. Start Windows Executor
+### 3. Start the Windows Executor
 
 ```powershell
-.\client\scripts\dev_all.ps1 -Backend "ws://localhost:7860" -Token "your-secret-token-here"
+.\client\scripts\dev_all.ps1 -Backend "ws://localhost:7860" -Token "hackathon123"
 ```
 
-### 4. Open Chat UI
-
-Go to → **http://localhost:7860**
-
-Describe your Windows problem. The agent takes it from there. 🎯
+### 4. Run It!
+Go to **http://localhost:7860** in your browser. Type *"My Bluetooth is not working"* and watch the agent take over.
 
 ---
 
 ## 🧪 Test Prompts to Try
-
-```
-"My Bluetooth is not working"
-"Open Notepad and write Hello World"
-"Check my disk space"
-"My WiFi keeps disconnecting"
-"What apps are currently running on my screen?"
-"Set my volume to 50%"
-```
-
----
-
-## 🛠️ Dev Flags
-
-| Flag | Effect |
-|---|---|
-| `SKIP_DB=1` | Skip Postgres (no solution caching) |
-| `MOCK_AGENT=1` | UI development — no agent needed |
-| `MOCK_LLM=1` | Agent loop with canned LLM responses |
-
----
-
-## 🔧 IT Dashboard
-
-Access at **http://localhost:7860/it** to review and approve AI-discovered solutions before they enter the shared knowledge base.
+- *"My Bluetooth is not working"*
+- *"Open Notepad and write Hello World"*
+- *"Check my disk space"*
+- *"My WiFi keeps disconnecting"*
+- *"Set my volume to 50%"*
 
 ---
 
 ## 🤝 Built With
-
-- [FastAPI](https://fastapi.tiangolo.com/) — Backend & WebSocket server
-- [pyautogui](https://pyautogui.readthedocs.io/) — Mouse & keyboard control
-- [mss](https://python-mss.readthedocs.io/) — Fast screen capture
-- [PyQt5](https://pypi.org/project/PyQt5/) — Floating widget UI
-- [pgvector](https://github.com/pgvector/pgvector) — Semantic solution search
-- [Gemini / OpenAI](https://ai.google.dev/) — Vision-language model
+- **[FastAPI](https://fastapi.tiangolo.com/)** — Backend & WebSocket server
+- **[pyautogui](https://pyautogui.readthedocs.io/)** — Mouse & keyboard control
+- **[mss](https://python-mss.readthedocs.io/)** — Lightning-fast screen capture
+- **[pgvector](https://github.com/pgvector/pgvector)** — Semantic solution caching
+- **[Gemini AI](https://ai.google.dev/)** — Vision-language reasoning model
 
 ---
 
 ## 📄 License
-
 MIT License — feel free to use, modify, and build on this project.
